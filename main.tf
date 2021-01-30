@@ -26,22 +26,22 @@ resource "aws_internet_gateway" "gw" {
 
 # Create Custom Route Table
 resource "aws_route_table" "devops_rt1" {
- vpc_id = aws_vpc.devops_2020.id
+  vpc_id = aws_vpc.devops_2020.id
 
 # Create routing rules to my internet gateway
- route {
+  route {
      cidr_block = "0.0.0.0/0" # IPv4
      gateway_id = aws_internet_gateway.gw.id
- }
+  }
 
- route {
+  route {
      ipv6_cidr_block = "::/0" #IPv6
      gateway_id = aws_internet_gateway.gw.id
- }
+  }
 
- tags = {
-   "Name" = "devops_2020"
- }
+  tags = {
+    "Name" = "devops_2020"
+  }
 
 }
 
@@ -114,12 +114,12 @@ resource "aws_security_group" "allow_web" {
 resource "aws_network_interface" "web-server-nic" {
   subnet_id =  aws_subnet.devops_subnet-01.id
   private_ip = "10.0.0.10"
-  security_groups = [ aws_security_group.allow_web.id ]
+  security_groups = aws_security_group.allow_web.id
 }
 
 # Create new Elastic IP (public ip)
 resource "aws_eip" "web_eip" {
-    vpc = true
+  vpc = true
 # associate public ip with nic    
     network_border_group = aws_network_interface.web-server-nic.id
     network_interface = aws_network_interface.web-server-nic.id
@@ -146,9 +146,9 @@ resource "aws_instance" "web_server_instance" {
 
   tags = {
     "Name" = "Segev Web Server"
-  }
+   }
 }
-}
+
 
 
 
