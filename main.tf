@@ -323,4 +323,3 @@ resource "aws_instance" "web_server_instance" {
 #   tags = {
 #     "Name" = "Segev Web Server"
 #   }
-# }
