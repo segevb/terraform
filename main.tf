@@ -23,9 +23,8 @@ provider "aws" {
 
 
 # 1- Create a VPC
-# 10.122.0.0 255.255.0.0 ===> 65,536 = 2^16 
 resource "aws_vpc" "devops_2020" {
-  cidr_block = "10.122.0.0/16"
+  cidr_block = "10.0.0.0/16"
 }
 
 # 2- Create an internet gateway
@@ -37,6 +36,7 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_route_table" "devops_rt1" {
  vpc_id = aws_vpc.devops_2020.id
 
+# Create routing rules to my internet gateway
  route {
      cidr_block = "0.0.0.0/0" # IPv4
      gateway_id = aws_internet_gateway.gw.id
@@ -56,8 +56,9 @@ resource "aws_route_table" "devops_rt1" {
 # 4- Create network Subnet
 resource "aws_subnet" "devops_subnet-01" {
     vpc_id = aws_vpc.devops_2020.id
-    cidr_block = "10.122.122.0/24"
-    availability_zone = "eu-central-1a" 
+    cidr_block = "10.0.0.0/24"
+# create the subnet in the same availability zone of my new VPC   
+    availability_zone = "eu-central-1a"   
     
     tags = {
       Name = "devops_subnet-01"
@@ -65,7 +66,7 @@ resource "aws_subnet" "devops_subnet-01" {
 }
 
 # 5- Associate Route table with subnet
-resource "aws_route_table_association" "a" {
+resource "aws_route_table_association" "route_table_1" {
  subnet_id = aws_subnet.devops_subnet-01.id
  route_table_id = aws_route_table.devops_rt1.id
 }
@@ -76,6 +77,7 @@ resource "aws_security_group" "allow_web" {
   description = "Allow inbound web traffic"
   vpc_id = aws_vpc.devops_2020.id
 
+# incoming traffic roule
   ingress {
     cidr_blocks = [ "0.0.0.0/0" ]
     description = "HTTP"
@@ -100,11 +102,14 @@ resource "aws_security_group" "allow_web" {
     protocol = "tcp"
   } 
   
+# outgoing traffic roule
   egress  {
     cidr_blocks = [ "0.0.0.0/0" ]
     description = "All networks allowed"
+# all ports
     from_port = 0
     to_port = 0
+# all protocols
     protocol = "-1"
   } 
 
@@ -117,15 +122,17 @@ resource "aws_security_group" "allow_web" {
 # 7- Create new network interface
 resource "aws_network_interface" "web-server-nic" {
   subnet_id =  aws_subnet.devops_subnet-01.id
-  private_ip = "10.122.122.122"
+  private_ip = "10.0.0.10"
   security_groups = [ aws_security_group.allow_web.id ]
 }
 
-# 8- Create new Elastic IP
+# 8- Create new Elastic IP (public ip)
 resource "aws_eip" "web_eip" {
     vpc = true
+# associate public ip with nic    
+    network_border_group = aws_network_interface.web-server-nic.id
     network_interface = aws_network_interface.web-server-nic.id
-    # associate_with_private_ip = "10.122.122.122"
+    associate_with_private_ip = "10.0.0.10"
     depends_on = [ aws_internet_gateway.gw ]
 }
 
@@ -136,16 +143,16 @@ output "server_public_ip" {
 
 # 10- Create a new ubuntu instance
 resource "aws_instance" "web_server_instance" {
-    ami = "ami-0502e817a62226e03"
+    ami = "ami-0502e817a62226e03"   # image id
     instance_type = "t2.micro"
     availability_zone = "eu-central-1a"
-    key_name = "nader"
+    key_name = "int2020"
     
     network_interface {
       device_index = 0
       network_interface_id = aws_network_interface.web-server-nic.id
     }
-    user_data = <<-EOF
+    user_data = <<-EOF  # 
 
     sudo apt update 
     sudo apt install apache2
@@ -154,6 +161,6 @@ resource "aws_instance" "web_server_instance" {
     EOF
 
   tags = {
-    "Name" = "Nader Web Server"
+    "Name" = "Segev Web Server"
   }
 }
