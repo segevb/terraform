@@ -48,7 +48,7 @@ resource "aws_route_table" "devops_rt1" {
 # Create network Subnet
 resource "aws_subnet" "devops_subnet-01" {
     vpc_id = aws_vpc.devops_2020.id
-    cidr_block = "10.0.0.0/24"
+    cidr_block = "10.0.1.0/24"
  # create the subnet in the same availability zone of my new VPC
     availability_zone = "eu-central-1a"
 
@@ -113,7 +113,7 @@ resource "aws_security_group" "allow_web" {
  # Create new network interface
 resource "aws_network_interface" "web-server-nic" {
   subnet_id =  aws_subnet.devops_subnet-01.id
-  private_ip = "10.0.0.10"
+  private_ip = "10.0.1.10"
   security_groups = [ aws_security_group.allow_web.id ]
 }
 
@@ -122,7 +122,7 @@ resource "aws_eip" "web_eip" {
     vpc = true
  # associate public ip with nic
     network_interface = aws_network_interface.web-server-nic.id
-    associate_with_private_ip = "10.0.0.10"
+    associate_with_private_ip = "10.0.1.10"
     depends_on = [ aws_internet_gateway.gw ]
 }
 
