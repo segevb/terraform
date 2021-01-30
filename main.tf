@@ -3,16 +3,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-     #   version = "~> 3.0"
-    }
+     }
   }
 }
 
  # Configure the AWS Provider
 provider "aws" {
   region = "eu-central-1"  # Frankfurt region
-  access_key = " Please enter access_key "
-  secret_key = " Please enter secret_key "
+  access_key = "AKIAJKKZCN4UMCFC2TUQ"
+  secret_key = "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"
 }
 
  # Create a VPC
@@ -50,9 +49,9 @@ resource "aws_route_table" "devops_rt1" {
 resource "aws_subnet" "devops_subnet-01" {
     vpc_id = aws_vpc.devops_2020.id
     cidr_block = "10.0.0.0/24"
- # create the subnet in the same availability zone of my new VPC   
-    availability_zone = "eu-central-1a"   
-    
+ # create the subnet in the same availability zone of my new VPC
+    availability_zone = "eu-central-1a"
+
     tags = {
       Name = "devops_subnet-01"
     }
@@ -86,15 +85,15 @@ resource "aws_security_group" "allow_web" {
     to_port = 443
     protocol = "tcp"
   }
-  
+
   ingress {
     cidr_blocks = [ "0.0.0.0/0" ]
     description = "SSH"
     from_port = 22
     to_port = 22
     protocol = "tcp"
-  } 
-  
+  }
+
  # outgoing traffic roule
   egress  {
     cidr_blocks = [ "0.0.0.0/0" ]
@@ -104,25 +103,24 @@ resource "aws_security_group" "allow_web" {
     to_port = 0
  # all protocols
     protocol = "-1"
-  } 
+  }
 
   tags = {
     "Name" = "DevOps-2020"
   }
-
+}
 
  # Create new network interface
 resource "aws_network_interface" "web-server-nic" {
   subnet_id =  aws_subnet.devops_subnet-01.id
   private_ip = "10.0.0.10"
-  security_groups = aws_security_group.allow_web.id
+  security_groups = [ aws_security_group.allow_web.id ]
 }
 
  # Create new Elastic IP (public ip)
 resource "aws_eip" "web_eip" {
-  vpc = true
- # associate public ip with nic    
-    network_border_group = aws_network_interface.web-server-nic.id
+    vpc = true
+ # associate public ip with nic
     network_interface = aws_network_interface.web-server-nic.id
     associate_with_private_ip = "10.0.0.10"
     depends_on = [ aws_internet_gateway.gw ]
@@ -138,8 +136,8 @@ resource "aws_instance" "web_server_instance" {
     ami = "ami-0502e817a62226e03"   # image id
     instance_type = "t2.micro"
     availability_zone = "eu-central-1a"
-    key_name = "int2020"  # ssh key
-    
+    key_name = "int2021"  # ssh key
+
     network_interface {
       device_index = 0
       network_interface_id = aws_network_interface.web-server-nic.id
@@ -147,5 +145,4 @@ resource "aws_instance" "web_server_instance" {
   tags = {
     "Name" = "Segev Web Server"
    }
-}
 }
