@@ -113,7 +113,7 @@ resource "aws_security_group" "allow_web" {
  # Create new network interface
 resource "aws_network_interface" "web-server-nic" {
   subnet_id =  aws_subnet.devops_subnet-01.id
-  private_ip = "10.0.1.10"
+  private_ips = ["10.0.1.10"]
   security_groups = [ aws_security_group.allow_web.id ]
 }
 
