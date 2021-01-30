@@ -148,6 +148,8 @@ resource "aws_instance" "web_server_instance" {
     "Name" = "Segev Web Server"
   }
 }
+}
+
 
 
 
